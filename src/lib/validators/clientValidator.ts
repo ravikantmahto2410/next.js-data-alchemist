@@ -1,5 +1,6 @@
 
 import { Client } from '../types/client';
+import { Task } from '../types/task';
 
 export interface ValidationError {
   rowIndex: number;
@@ -17,12 +18,10 @@ export function validateClients(clients: Client[], taskIds: string[]): Validatio
     if (!client.ClientName) errors.push({ rowIndex: index, field: 'ClientName', message: 'Missing ClientName' });
     if (!client.PriorityLevel) errors.push({ rowIndex: index, field: 'PriorityLevel', message: 'Missing PriorityLevel' });
     // b. Duplicate IDs
-    if (client.ClientID) {
-      if (seenIds.has(client.ClientID)) {
-        errors.push({ rowIndex: index, field: 'ClientID', message: 'Duplicate ClientID' });
-      } else {
-        seenIds.add(client.ClientID);
-      }
+    if (client.ClientID && seenIds.has(client.ClientID)) {
+      errors.push({ rowIndex: index, field: 'ClientID', message: 'Duplicate ClientID' });
+    } else if (client.ClientID) {
+      seenIds.add(client.ClientID);
     }
     // d. Out-of-range PriorityLevel
     if (client.PriorityLevel && (client.PriorityLevel < 1 || client.PriorityLevel > 5)) {

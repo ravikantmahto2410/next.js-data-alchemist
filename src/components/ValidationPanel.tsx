@@ -1,4 +1,4 @@
-// components/ValidationPanel.tsx
+
 import { ValidationError } from '@/lib/validators/clientValidator';
 
 interface ValidationPanelProps {

@@ -1,7 +1,6 @@
 // components/FileUpload.tsx
-import { useState } from 'react';
-import Papa from 'papaparse'
-import * as XLSX from 'xlsx';
+import { useRef } from 'react';
+import Papa from 'papaparse';
 import { Client, Worker, Task } from '@/lib/types';
 
 interface FileUploadProps {
@@ -9,47 +8,43 @@ interface FileUploadProps {
 }
 
 export default function FileUpload({ onDataParsed }: FileUploadProps) {
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
     if (!files) return;
 
-    const parsedData = { clients: [], workers: [], tasks: [] };
-
-    for (const file of Array.from(files)) {
-      if (file.name.endsWith('.csv')) {
+    const parseFile = (file: File, type: 'clients' | 'workers' | 'tasks') => {
+      return new Promise<any[]>((resolve) => {
         Papa.parse(file, {
           complete: (result) => {
-            const data = result.data as any[];
-            const entityType = file.name.includes('clients') ? 'clients' : file.name.includes('workers') ? 'workers' : 'tasks';
-            parsedData[entityType] = data;
+            resolve(result.data as any[]);
           },
           header: true,
           skipEmptyLines: true,
         });
-      } else if (file.name.endsWith('.xlsx')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const workbook = XLSX.read(event.target?.result, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          const data = XLSX.utils.sheet_to_json(sheet);
-          const entityType = file.name.includes('clients') ? 'clients' : file.name.includes('workers') ? 'workers' : 'tasks';
-          parsedData[entityType] = data;
-        };
-        reader.readAsBinaryString(file);
-      }
-    }
+      });
+    };
 
-    onDataParsed(parsedData);
+    Promise.all([
+      files[0] ? parseFile(files[0], 'clients') : Promise.resolve([]),
+      files[1] ? parseFile(files[1], 'workers') : Promise.resolve([]),
+      files[2] ? parseFile(files[2], 'tasks') : Promise.resolve([]),
+    ]).then(([clients, workers, tasks]) => {
+      onDataParsed({ clients, workers, tasks });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    });
   };
 
   return (
     <div className="p-4">
+      <label className="block mb-2">Upload CSV Files (Clients, Workers, Tasks)</label>
       <input
         type="file"
-        accept=".csv,.xlsx"
         multiple
-        onChange={handleFileChange}
+        accept=".csv"
+        onChange={handleFileUpload}
+        ref={fileInputRef}
         className="border p-2"
       />
     </div>

@@ -13,8 +13,8 @@ export default function PrioritizationSliders({ onUpdate }: PrioritizationSlider
   });
 
   useEffect(() => {
-    // Normalize weights to sum to 1
     const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
+    if (total === 0) return;
     const normalized = Object.fromEntries(
       Object.entries(weights).map(([key, value]) => [key, value / total])
     );

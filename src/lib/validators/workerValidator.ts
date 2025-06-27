@@ -1,4 +1,4 @@
-// lib/validators/workerValidator.ts
+
 import { Worker } from '../types/worker';
 import { Task } from '../types/task';
 import { ValidationError } from './clientValidator';
@@ -13,12 +13,10 @@ export function validateWorkers(workers: Worker[], tasks: Task[]): ValidationErr
     if (!worker.WorkerName) errors.push({ rowIndex: index, field: 'WorkerName', message: 'Missing WorkerName' });
 
     // b. Duplicate IDs
-    if (worker.WorkerID) {
-      if (seenIds.has(worker.WorkerID)) {
-        errors.push({ rowIndex: index, field: 'WorkerID', message: 'Duplicate WorkerID' });
-      } else {
-        seenIds.add(worker.WorkerID);
-      }
+    if (worker.WorkerID && seenIds.has(worker.WorkerID)) {
+      errors.push({ rowIndex: index, field: 'WorkerID', message: 'Duplicate WorkerID' });
+    } else if (worker.WorkerID) {
+      seenIds.add(worker.WorkerID);
     }
 
     // c. Malformed lists (AvailableSlots)

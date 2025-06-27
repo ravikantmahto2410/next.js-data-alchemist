@@ -1,4 +1,4 @@
-// components/RuleInput.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -18,8 +18,7 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
   const [minCommonSlots, setMinCommonSlots] = useState<number | null>(null);
   const [maxSlotsPerPhase, setMaxSlotsPerPhase] = useState<number | null>(null);
   const [phases, setPhases] = useState<string>('');
-
-  const { tasks } = useDataStore(); // Access tasks for validation
+  const { tasks } = useDataStore();
 
   const handleAddManualRule = () => {
     let rule: Rule;
@@ -32,7 +31,12 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
     } else if (ruleType === 'phaseWindow') {
       rule = { type: 'phaseWindow', tasks: taskIds, phases };
     } else {
-      return; // Handle other rule types
+      return;
+    }
+    const invalidTasks = rule.tasks?.filter(taskId => !tasks.some(t => t.TaskID === taskId)) || [];
+    if (invalidTasks.length > 0) {
+      alert(`Invalid Task IDs: ${invalidTasks.join(', ')}`);
+      return;
     }
     onAddRule(rule);
   };
@@ -40,13 +44,10 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
   const handleAddNaturalLanguageRule = () => {
     const rule = parseRule(naturalLanguageQuery);
     if (rule) {
-      // Validate rule (e.g., check if tasks exist)
-      if (rule.tasks) {
-        const invalidTasks = rule.tasks.filter(taskId => !tasks.some(t => t.TaskID === taskId));
-        if (invalidTasks.length > 0) {
-          alert(`Invalid Task IDs: ${invalidTasks.join(', ')}`);
-          return;
-        }
+      const invalidTasks = rule.tasks?.filter(taskId => !tasks.some(t => t.TaskID === taskId)) || [];
+      if (invalidTasks.length > 0) {
+        alert(`Invalid Task IDs: ${invalidTasks.join(', ')}`);
+        return;
       }
       onAddRule(rule);
       setNaturalLanguageQuery('');
@@ -58,7 +59,6 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
   return (
     <div className="p-4 border rounded">
       <h2 className="text-lg font-bold mb-2">Add Rule</h2>
-      {/* Manual Rule Input */}
       <div className="mb-4">
         <label className="block mb-1">Rule Type</label>
         <select
@@ -75,7 +75,7 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
           <input
             type="text"
             placeholder="Task IDs (comma-separated)"
-            onChange={(e) => setTaskIds(e.target.value.split(','))}
+            onChange={(e) => setTaskIds(e.target.value.split(',').map(id => id.trim()))}
             className="border p-2 w-full mt-2"
           />
         )}
@@ -95,7 +95,38 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
             />
           </>
         )}
-        {/* Add inputs for other rule types */}
+        {ruleType === 'loadLimit' && (
+          <>
+            <input
+              type="text"
+              placeholder="Group (e.g., Dev)"
+              onChange={(e) => setGroup(e.target.value)}
+              className="border p-2 w-full mt-2"
+            />
+            <input
+              type="number"
+              placeholder="Max Slots Per Phase"
+              onChange={(e) => setMaxSlotsPerPhase(parseInt(e.target.value))}
+              className="border p-2 w-full mt-2"
+            />
+          </>
+        )}
+        {ruleType === 'phaseWindow' && (
+          <>
+            <input
+              type="text"
+              placeholder="Task IDs (comma-separated)"
+              onChange={(e) => setTaskIds(e.target.value.split(',').map(id => id.trim()))}
+              className="border p-2 w-full mt-2"
+            />
+            <input
+              type="text"
+              placeholder="Phases (e.g., 1-3)"
+              onChange={(e) => setPhases(e.target.value)}
+              className="border p-2 w-full mt-2"
+            />
+          </>
+        )}
         <button
           onClick={handleAddManualRule}
           className="mt-2 bg-blue-500 text-white p-2 rounded"
@@ -103,7 +134,6 @@ export default function RuleInput({ onAddRule }: RuleInputProps) {
           Add Manual Rule
         </button>
       </div>
-      {/* Natural Language Rule Input */}
       <div>
         <label className="block mb-1">Natural Language Rule</label>
         <input

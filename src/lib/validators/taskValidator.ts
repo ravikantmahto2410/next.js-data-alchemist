@@ -13,12 +13,10 @@ export function validateTasks(tasks: Task[], workers: Worker[]): ValidationError
     if (!task.TaskName) errors.push({ rowIndex: index, field: 'TaskName', message: 'Missing TaskName' });
 
     // b. Duplicate IDs
-    if (task.TaskID) {
-      if (seenIds.has(task.TaskID)) {
-        errors.push({ rowIndex: index, field: 'TaskID', message: 'Duplicate TaskID' });
-      } else {
-        seenIds.add(task.TaskID);
-      }
+    if (task.TaskID && seenIds.has(task.TaskID)) {
+      errors.push({ rowIndex: index, field: 'TaskID', message: 'Duplicate TaskID' });
+    } else if (task.TaskID) {
+      seenIds.add(task.TaskID);
     }
 
     // d. Out-of-range values
