@@ -67,7 +67,7 @@ export default function Dashboard() {
     console.log('Parsed Clients:', clients);
     console.log('Parsed Workers:', workers);
     console.log('Parsed Tasks:', tasks);
-    const taskIds = tasks.map(task => task.TaskID);
+    const taskIds = tasks.map(task => task.TaskID).filter(Boolean);
     const clientErrors = validateClients(clients, taskIds);
     const workerErrors = validateWorkers(workers, tasks);
     const taskErrors = validateTasks(tasks, workers);
@@ -78,12 +78,12 @@ export default function Dashboard() {
   };
 
   const columnDefs: ColDef<Client>[] = [
-    { headerName: 'ClientID', field: 'ClientID', sortable: true, filter: true, editable: true },
-    { headerName: 'ClientName', field: 'ClientName', sortable: true, filter: true, editable: true },
-    { headerName: 'PriorityLevel', field: 'PriorityLevel', sortable: true, filter: true, editable: true },
-    { headerName: 'RequestedTaskIDs', field: 'RequestedTaskIDs', sortable: true, filter: true, editable: true },
-    { headerName: 'GroupTag', field: 'GroupTag', sortable: true, filter: true, editable: true },
-    { headerName: 'AttributesJSON', field: 'AttributesJSON', sortable: true, filter: true, editable: true },
+    { headerName: 'Client ID', field: 'ClientID', sortable: true, filter: true, editable: true, minWidth: 100 },
+    { headerName: 'Client Name', field: 'ClientName', sortable: true, filter: true, editable: true, minWidth: 150 },
+    { headerName: 'Priority Level', field: 'PriorityLevel', sortable: true, filter: true, editable: true, minWidth: 120 },
+    { headerName: 'Requested Tasks', field: 'RequestedTaskIDs', sortable: true, filter: true, editable: true, minWidth: 150 },
+    { headerName: 'Group Tag', field: 'GroupTag', sortable: true, filter: true, editable: true, minWidth: 120 },
+    { headerName: 'Attributes', field: 'AttributesJSON', sortable: true, filter: true, editable: true, minWidth: 200 },
   ];
 
   return (
@@ -108,19 +108,29 @@ export default function Dashboard() {
       <RuleInput />
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Data Grid</h2>
-        <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
-          <AgGridReact
-            rowData={clients}
-            columnDefs={columnDefs}
-            domLayout="autoHeight"
-            pagination={true}
-            editType="fullRow"
-            onCellValueChanged={(event) => {
-              console.log('Cell Edited:', event.data);
-              setClients([...clients]);
-            }}
-          />
-        </div>
+        {clients.length === 0 ? (
+          <p className="text-gray-600">No client data available. Please upload clients.csv.</p>
+        ) : (
+          <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+            <AgGridReact
+              rowData={clients}
+              columnDefs={columnDefs}
+              defaultColDef={{ resizable: true, sortable: true, filter: true }}
+              domLayout="autoHeight"
+              pagination={true}
+              paginationPageSize={10}
+              editType="fullRow"
+              onCellValueChanged={(event) => {
+                console.log('Cell Edited:', event.data);
+                setClients([...clients]);
+              }}
+              onGridReady={(params) => {
+                console.log('Grid Ready, Row Data:', clients);
+                params.api.sizeColumnsToFit();
+              }}
+            />
+          </div>
+        )}
       </div>
       <Sliders />
       <ExportButton disabled={validationErrors.length > 0} />

@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Papa from 'papaparse';
 import { Client, Worker, Task } from '@/lib/types';
-
+import { useDataStore } from '@/lib/store';
 interface FileUploadProps {
   onDataParsed: (data: { clients: Client[]; workers: Worker[]; tasks: Task[] }) => void;
 }
@@ -43,6 +43,7 @@ export default function FileUpload({ onDataParsed }: FileUploadProps) {
       tasksFile ? parseFile(tasksFile) : Promise.resolve([]),
     ]).then(([clients, workers, tasks]) => {
       onDataParsed({ clients, workers, tasks });
+      useDataStore.getState().setData({ clients, workers, tasks });
       if (fileInputRef.current) fileInputRef.current.value = '';
     });
   };

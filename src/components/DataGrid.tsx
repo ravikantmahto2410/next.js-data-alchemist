@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AgGridReact } from 'ag-grid-react';
@@ -6,45 +5,65 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { Client, Worker, Task } from '@/lib/types';
 import { ColDef, CellValueChangedEvent } from 'ag-grid-community';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
+import { useDataStore } from '@/lib/store';
 
 interface DataGridProps {
-  data: Client[] | Worker[] | Task[];
   entityType: 'client' | 'worker' | 'task';
   onCellEdit: (row: any, field: string, newValue: any) => void;
 }
 
-export default function DataGrid({ data, entityType, onCellEdit }: DataGridProps) {
+export default function DataGrid({ entityType, onCellEdit }: DataGridProps) {
   const gridRef = useRef<AgGridReact>(null);
+  const { validatedData } = useDataStore();
 
-  const columnDefs: ColDef[] = entityType === 'task' ? [
-    { field: 'TaskID', editable: true },
-    { field: 'TaskName', editable: true },
-    { field: 'Category', editable: true },
-    { field: 'Duration', editable: true },
-    { field: 'RequiredSkills', editable: true },
-    { field: 'PreferredPhases', editable: true },
-    { field: 'MaxConcurrent', editable: true },
-  ] : entityType === 'client' ? [
-    { field: 'ClientID', editable: true },
-    { field: 'ClientName', editable: true },
-    { field: 'PriorityLevel', editable: true },
-    { field: 'RequestedTaskIDs', editable: true },
-    { field: 'GroupTag', editable: true },
-    { field: 'AttributesJSON', editable: true },
-  ] : [
-    { field: 'WorkerID', editable: true },
-    { field: 'WorkerName', editable: true },
-    { field: 'Skills', editable: true },
-    { field: 'AvailableSlots', editable: true },
-    { field: 'MaxLoadPerPhase', editable: true },
-    { field: 'WorkerGroup', editable: true },
-    { field: 'QualificationLevel', editable: true },
-  ];
+  // Determine rowData based on entityType
+  const rowData = entityType === 'client'
+    ? validatedData.clients
+    : entityType === 'worker'
+    ? validatedData.workers
+    : validatedData.tasks;
+
+  useEffect(() => {
+    console.log(`DataGrid rowData for ${entityType}:`, rowData);
+    if (!rowData || rowData.length === 0) {
+      console.warn(`No ${entityType} data available in validatedData.`);
+    }
+  }, [rowData, entityType]);
+
+  const columnDefs: ColDef[] = entityType === 'task'
+    ? [
+        { field: 'TaskID', editable: true, type: 'string' },
+        { field: 'TaskName', editable: true, type: 'string' },
+        { field: 'Category', editable: true, type: 'string' },
+        { field: 'Duration', editable: true, type: 'number' },
+        { field: 'RequiredSkills', editable: true, type: 'string' },
+        { field: 'PreferredPhases', editable: true, type: 'string' },
+        { field: 'MaxConcurrent', editable: true, type: 'number' },
+      ]
+    : entityType === 'client'
+    ? [
+        { field: 'ClientID', editable: true, type: 'string' },
+        { field: 'ClientName', editable: true, type: 'string' },
+        { field: 'PriorityLevel', editable: true, type: 'number' },
+        { field: 'RequestedTaskIDs', editable: true, type: 'string' },
+        { field: 'GroupTag', editable: true, type: 'string' },
+        { field: 'AttributesJSON', editable: true, type: 'string' },
+      ]
+    : [
+        { field: 'WorkerID', editable: true, type: 'string' },
+        { field: 'WorkerName', editable: true, type: 'string' },
+        { field: 'Skills', editable: true, type: 'string' },
+        { field: 'AvailableSlots', editable: true, type: 'number' },
+        { field: 'MaxLoadPerPhase', editable: true, type: 'number' },
+        { field: 'WorkerGroup', editable: true, type: 'string' },
+        { field: 'QualificationLevel', editable: true, type: 'number' },
+      ];
 
   const onCellValueChanged = (event: CellValueChangedEvent) => {
-    if (event.colDef.field) {
+    if (event.colDef.field && event.data && event.newValue !== undefined) {
       onCellEdit(event.data, event.colDef.field, event.newValue);
+      console.log(`Cell edited: ${event.colDef.field} = ${event.newValue}`, event.data);
     }
   };
 
@@ -52,10 +71,11 @@ export default function DataGrid({ data, entityType, onCellEdit }: DataGridProps
     <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
       <AgGridReact
         ref={gridRef}
-        rowData={data}
+        rowData={rowData || []} // Fallback to empty array if undefined
         columnDefs={columnDefs}
         onCellValueChanged={onCellValueChanged}
         domLayout="normal"
+        defaultColDef={{ sortable: true, filter: true }} // Add basic features
       />
     </div>
   );

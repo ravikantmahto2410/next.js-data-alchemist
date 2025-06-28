@@ -1,7 +1,25 @@
 // lib/types/rule.ts
-export interface Rule {
-  type: string; // e.g., "coRun", "slotRestriction"
-  tasks?: string[]; // For coRun rules (e.g., ["T1", "T2"])
-  group?: string; // For slotRestriction rules (e.g., "Sales")
-  minCommonSlots?: number; // For slotRestriction rules (e.g., 2)
+export interface CoRunRule {
+  type: 'coRun';
+  tasks: string[];
 }
+
+export interface SlotRestrictionRule {
+  type: 'slotRestriction';
+  group: string;
+  minCommonSlots: number;
+}
+
+export interface LoadLimitRule {
+  type: 'loadLimit';
+  group: string;
+  maxSlotsPerPhase: number;
+}
+
+export interface PhaseWindowRule {
+  type: 'phaseWindow';
+  tasks: string[];
+  phases: string;
+}
+
+export type Rule = CoRunRule | SlotRestrictionRule | LoadLimitRule | PhaseWindowRule;

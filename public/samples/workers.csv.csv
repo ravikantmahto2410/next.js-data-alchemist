@@ -1,4 +1,4 @@
 WorkerID,WorkerName,Skills,AvailableSlots,MaxLoadPerPhase,WorkerGroup,QualificationLevel
 W1,Ravikant,"UI/UX,JS","1,2,3",3,Dev,5
-W2,Raghu,js,"1,3",5,QA,4
+W2,Raghu,"js,UI/UX","1,3",5,QA,4
 W3,Bandariya,"Node.js,QA","1,2,3",3,Dev,4
