@@ -9,8 +9,8 @@ import SearchBar from '@/components/SearchBar';
 import RuleInput from '@/components/RuleInput';
 import PrioritizationSliders from '@/components/PrioritizationSliders';
 import ValidationPanel from '@/components/ValidationPanel';
-import { Client, Worker, Task, Rule } from '@/lib/types';
-import { validateClients, validateWorkers, validateTasks, ValidationError } from '@/lib/validators';
+import { Client, Worker, Task, Rule, ValidationError } from '@/lib/types';
+import { validateClients, validateWorkers, validateTasks } from '@/lib/validators';
 
 export default function Dashboard() {
   const { clients, workers, tasks, filteredTasks, rules, setData, setFilteredTasks, addRule } = useDataStore();
@@ -22,7 +22,6 @@ export default function Dashboard() {
   });
 
   const handleDataParsed = (data: { clients: Client[]; workers: Worker[]; tasks: Task[] }) => {
-    // Run validations on data upload
     const clientErrors = validateClients(data.clients, data.tasks.map(t => t.TaskID));
     const workerErrors = validateWorkers(data.workers, data.tasks);
     const taskErrors = validateTasks(data.tasks, data.workers);
@@ -39,13 +38,12 @@ export default function Dashboard() {
   };
 
   const handleCellEdit = (row: any, field: string, newValue: any) => {
-    // Update data in store and re-run validations
     const updatedTasks = tasks.map(t =>
       t.TaskID === row.TaskID ? { ...t, [field]: newValue } : t
     );
     setData({ clients, workers, tasks: updatedTasks });
     const taskErrors = validateTasks(updatedTasks, workers);
-    setValidationErrors([...validateClients(clients, tasks.map(t => t.TaskID)), ...validateWorkers(workers, tasks), ...taskErrors]);
+    setValidationErrors([...validateClients(clients, updatedTasks.map(t => t.TaskID)), ...validateWorkers(workers, updatedTasks), ...taskErrors]);
   };
 
   const handleExport = async () => {
@@ -55,8 +53,7 @@ export default function Dashboard() {
       body: JSON.stringify({ clients, workers, tasks, rules, weights }),
     });
     const { clients: clientCsv, workers: workerCsv, tasks: taskCsv, rules: rulesJson } = await response.json();
-    
-    // Trigger downloads
+
     const download = (content: string, fileName: string, contentType: string) => {
       const blob = new Blob([content], { type: contentType });
       const url = URL.createObjectURL(blob);
@@ -76,31 +73,19 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Data Alchemist Dashboard</h1>
-
-      {/* File Upload Section */}
       <section className="mb-6">
         <h2 className="text-xl mb-2">Upload Data</h2>
         <FileUpload onDataParsed={handleDataParsed} />
       </section>
-
-      {/* Validation Panel */}
       <section className="mb-6">
         <h2 className="text-xl mb-2">Validation Results</h2>
         <ValidationPanel errors={validationErrors} />
       </section>
-
-      {/* Search and Data Grid Section */}
       <section className="mb-6">
         <h2 className="text-xl mb-2">Tasks</h2>
         <SearchBar tasks={tasks} onSearch={handleSearch} />
-        <DataGrid
-          data={filteredTasks}
-          entityType="task"
-          onCellEdit={handleCellEdit}
-        />
+        <DataGrid data={filteredTasks} entityType="task" onCellEdit={handleCellEdit} />
       </section>
-
-      {/* Rule Input and Display Section */}
       <section className="mb-6">
         <h2 className="text-xl mb-2">Business Rules</h2>
         <RuleInput onAddRule={handleAddRule} />
@@ -123,14 +108,10 @@ export default function Dashboard() {
           )}
         </div>
       </section>
-
-      {/* Prioritization Section */}
       <section className="mb-6">
         <h2 className="text-xl mb-2">Prioritization</h2>
         <PrioritizationSliders onUpdate={setWeights} />
       </section>
-
-      {/* Export Button */}
       <section className="mb-6">
         <button
           onClick={handleExport}

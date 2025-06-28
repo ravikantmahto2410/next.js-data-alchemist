@@ -1,4 +1,6 @@
-// components/FileUpload.tsx
+
+'use client';
+
 import { useRef } from 'react';
 import Papa from 'papaparse';
 import { Client, Worker, Task } from '@/lib/types';
