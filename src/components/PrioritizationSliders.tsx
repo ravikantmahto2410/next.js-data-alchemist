@@ -33,8 +33,8 @@ export default function PrioritizationSliders({ onUpdate }: PrioritizationSlider
           <input
             type="range"
             min="0"
-            max="1"
-            step="0.1"
+            max="10"
+            step="1"
             value={weights[key as keyof typeof weights]}
             onChange={e => handleChange(key, parseFloat(e.target.value))}
             className="w-full"

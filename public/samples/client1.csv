@@ -1,0 +1,5 @@
+ClientID,ClientName,PriorityLevel,RequestedTaskIDs,GroupTag,AttributesJSON
+C1,Acme Corp,3,"T1, T2",GroupA,"{""location"":""New York"",""budget"":100000}"
+C2,Globex Inc,1,"T3,T4",GroupB,"{""message"":""ensure deliverables align with project scope"",""location"":""London"",""budget"":56000}"
+C51,Initech,4,"T1,T3",GroupA,"{""sla"":""24h"",""vip"":true}"
+C4,Umbrella Co,5,"T4, T2",GroupC,"{""message"":""budget approved pending CFO review"",""location"":""Mumbai"",""budget"":112000}"

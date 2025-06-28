@@ -1,5 +1,5 @@
 TaskID,TaskName,Category,Duration,RequiredSkills,PreferredPhases,MaxConcurrent
 T1,Design Website,Development,2,UI/UX,"[1,2]",3
-T2,API Integration,Development,1,Node.js,2-4,2
+T2,API Integration,Development,1,Node.js,"[2,4]",2
 T3,Testing,QA,3,QA,"[2,3,5]",1
 T4,Database Setup,Development,1,Node.js,"[1,2]",1

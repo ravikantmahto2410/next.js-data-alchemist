@@ -1,4 +1,4 @@
-
+// components/FileUpload.tsx
 'use client';
 
 import { useRef } from 'react';
@@ -14,9 +14,9 @@ export default function FileUpload({ onDataParsed }: FileUploadProps) {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const parseFile = (file: File, type: 'clients' | 'workers' | 'tasks') => {
+    const parseFile = (file: File) => {
       return new Promise<any[]>((resolve) => {
         Papa.parse(file, {
           complete: (result) => {
@@ -28,10 +28,14 @@ export default function FileUpload({ onDataParsed }: FileUploadProps) {
       });
     };
 
+    const clientsFile = Array.from(files).find(f => f.name.toLowerCase().includes('clients'));
+    const workersFile = Array.from(files).find(f => f.name.toLowerCase().includes('workers'));
+    const tasksFile = Array.from(files).find(f => f.name.toLowerCase().includes('tasks'));
+
     Promise.all([
-      files[0] ? parseFile(files[0], 'clients') : Promise.resolve([]),
-      files[1] ? parseFile(files[1], 'workers') : Promise.resolve([]),
-      files[2] ? parseFile(files[2], 'tasks') : Promise.resolve([]),
+      clientsFile ? parseFile(clientsFile) : Promise.resolve([]),
+      workersFile ? parseFile(workersFile) : Promise.resolve([]),
+      tasksFile ? parseFile(tasksFile) : Promise.resolve([]),
     ]).then(([clients, workers, tasks]) => {
       onDataParsed({ clients, workers, tasks });
       if (fileInputRef.current) fileInputRef.current.value = '';
