@@ -5,9 +5,12 @@ import FileUpload from '@/components/FileUpload';
 import { validateClients, validateWorkers, validateTasks } from '@/lib/validators';
 import { Client, Worker, Task, ValidationError } from '@/lib/types';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef } from 'ag-grid-community';
+import { ModuleRegistry, AllCommunityModule, ColDef } from 'ag-grid-community'; // Import modules
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+// Register the module outside the component
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 const SearchBar = () => (
   <div className="p-4">

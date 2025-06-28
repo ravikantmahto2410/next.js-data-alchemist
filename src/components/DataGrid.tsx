@@ -1,12 +1,16 @@
 'use client';
 
 import { AgGridReact } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'; // Import modules
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { Client, Worker, Task } from '@/lib/types';
 import { ColDef, CellValueChangedEvent } from 'ag-grid-community';
 import { useRef, useEffect } from 'react';
 import { useDataStore } from '@/lib/store';
+
+// Register the module
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface DataGridProps {
   entityType: 'client' | 'worker' | 'task';
@@ -17,7 +21,6 @@ export default function DataGrid({ entityType, onCellEdit }: DataGridProps) {
   const gridRef = useRef<AgGridReact>(null);
   const { validatedData } = useDataStore();
 
-  // Determine rowData based on entityType
   const rowData = entityType === 'client'
     ? validatedData.clients
     : entityType === 'worker'
@@ -71,11 +74,11 @@ export default function DataGrid({ entityType, onCellEdit }: DataGridProps) {
     <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
       <AgGridReact
         ref={gridRef}
-        rowData={rowData || []} // Fallback to empty array if undefined
+        rowData={rowData || []}
         columnDefs={columnDefs}
         onCellValueChanged={onCellValueChanged}
         domLayout="normal"
-        defaultColDef={{ sortable: true, filter: true }} // Add basic features
+        defaultColDef={{ sortable: true, filter: true }}
       />
     </div>
   );
