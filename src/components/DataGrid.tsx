@@ -1,8 +1,12 @@
 
+'use client';
+
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { Client, Worker, Task } from '@/lib/types';
+import { ColDef, CellValueChangedEvent } from 'ag-grid-community';
+import { useRef } from 'react';
 
 interface DataGridProps {
   data: Client[] | Worker[] | Task[];
@@ -11,7 +15,9 @@ interface DataGridProps {
 }
 
 export default function DataGrid({ data, entityType, onCellEdit }: DataGridProps) {
-  const columnDefs = entityType === 'task' ? [
+  const gridRef = useRef<AgGridReact>(null);
+
+  const columnDefs: ColDef[] = entityType === 'task' ? [
     { field: 'TaskID', editable: true },
     { field: 'TaskName', editable: true },
     { field: 'Category', editable: true },
@@ -36,12 +42,20 @@ export default function DataGrid({ data, entityType, onCellEdit }: DataGridProps
     { field: 'QualificationLevel', editable: true },
   ];
 
+  const onCellValueChanged = (event: CellValueChangedEvent) => {
+    if (event.colDef.field) {
+      onCellEdit(event.data, event.colDef.field, event.newValue);
+    }
+  };
+
   return (
     <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
       <AgGridReact
+        ref={gridRef}
         rowData={data}
         columnDefs={columnDefs}
-        onCellValueChanged={(event) => onCellEdit(event.data, event.colDef.field, event.newValue)}
+        onCellValueChanged={onCellValueChanged}
+        domLayout="normal"
       />
     </div>
   );
