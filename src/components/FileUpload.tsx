@@ -1,4 +1,3 @@
-// components/FileUpload.tsx
 'use client';
 
 import { useRef } from 'react';
@@ -24,6 +23,12 @@ export default function FileUpload({ onDataParsed }: FileUploadProps) {
           },
           header: true,
           skipEmptyLines: true,
+          transform: (value, header) => {
+            if (header === 'PriorityLevel' || header === 'MaxLoadPerPhase' || header === 'QualificationLevel' || header === 'Duration' || header === 'MaxConcurrent') {
+              return parseInt(value, 10);
+            }
+            return value;
+          },
         });
       });
     };

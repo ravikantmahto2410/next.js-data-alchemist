@@ -1,4 +1,3 @@
-// lib/validators/taskValidator.ts
 import { Task, Worker, ValidationError } from '@/lib/types';
 
 export function validateTasks(tasks: Task[], workers: Worker[]): ValidationError[] {
@@ -30,9 +29,9 @@ export function validateTasks(tasks: Task[], workers: Worker[]): ValidationError
     }
 
     if (task.RequiredSkills) {
-      const requiredSkills = task.RequiredSkills.split(',').map(s => s.trim());
+      const requiredSkills = task.RequiredSkills.split(',').map(s => s.trim().toLowerCase());
       const hasSkills = workers.some(w => {
-        const workerSkills = w.Skills.split(',').map(s => s.trim());
+        const workerSkills = w.Skills.split(',').map(s => s.trim().toLowerCase());
         return requiredSkills.every(s => workerSkills.includes(s));
       });
       if (!hasSkills) {
