@@ -1,48 +1,46 @@
+// lib/validators/clientValidator.ts
+import { Client, ValidationError } from '@/lib/types';
 
-import { Client } from '../types/client';
-import { Task } from '../types/task';
-
-export interface ValidationError {
-  rowIndex: number;
-  field: string;
-  message: string;
-}
-
-export function validateClients(clients: Client[], taskIds: string[]): ValidationError[] {
+export function validateClients(clients: Client[], validTaskIds: string[]): ValidationError[] {
   const errors: ValidationError[] = [];
-  const seenIds = new Set<string>()
+  const clientIds = new Set<string>();
 
   clients.forEach((client, index) => {
-    // a. Missing required columns
-    if (!client.ClientID) errors.push({ rowIndex: index, field: 'ClientID', message: 'Missing ClientID' });
-    if (!client.ClientName) errors.push({ rowIndex: index, field: 'ClientName', message: 'Missing ClientName' });
-    if (!client.PriorityLevel) errors.push({ rowIndex: index, field: 'PriorityLevel', message: 'Missing PriorityLevel' });
-    // b. Duplicate IDs
-    if (client.ClientID && seenIds.has(client.ClientID)) {
-      errors.push({ rowIndex: index, field: 'ClientID', message: 'Duplicate ClientID' });
-    } else if (client.ClientID) {
-      seenIds.add(client.ClientID);
+    if (!client.ClientID) {
+      errors.push({ rowIndex: index, field: 'ClientID', message: 'Missing ClientID' });
+    } else if (clientIds.has(client.ClientID)) {
+      errors.push({
+        rowIndex: index,
+        field: 'ClientID',
+        message: `Duplicate ClientID: ${client.ClientID}`,
+      });
+    } else {
+      clientIds.add(client.ClientID);
     }
-    // d. Out-of-range PriorityLevel
-    if (client.PriorityLevel && (client.PriorityLevel < 1 || client.PriorityLevel > 5)) {
-      errors.push({ rowIndex: index, field: 'PriorityLevel', message: 'PriorityLevel must be 1-5' });
+
+    if (client.RequestedTaskIDs) {
+      const taskIds = client.RequestedTaskIDs.split(',').map(id => id.trim());
+      taskIds.forEach(id => {
+        if (!validTaskIds.includes(id)) {
+          errors.push({
+            rowIndex: index,
+            field: 'RequestedTaskIDs',
+            message: `Task ${id} not found`,
+          });
+        }
+      });
     }
+
     if (client.AttributesJSON) {
       try {
         JSON.parse(client.AttributesJSON);
       } catch {
-        errors.push({ rowIndex: index, field: 'AttributesJSON', message: 'Invalid JSON' });
+        errors.push({
+          rowIndex: index,
+          field: 'AttributesJSON',
+          message: 'Invalid JSON in AttributesJSON',
+        });
       }
-    }
-
-
-    if (client.RequestedTaskIDs) {
-      const requestedIds = client.RequestedTaskIDs.split(',').map(id => id.trim());
-      requestedIds.forEach(id => {
-        if (id && !taskIds.includes(id)) {
-          errors.push({ rowIndex: index, field: 'RequestedTaskIDs', message: `Task ${id} not found` });
-        }
-      });
     }
   });
 

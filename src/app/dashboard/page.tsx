@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useDataStore } from '@/lib/store';
 import FileUpload from '@/components/FileUpload';
 import DataGrid from '@/components/DataGrid';
-import SearchBar from '@/components/SearchBar';
+import SearchBar from '@/components/Searchbar';
 import RuleInput from '@/components/RuleInput';
 import PrioritizationSliders from '@/components/PrioritizationSliders';
 import ValidationPanel from '@/components/ValidationPanel';

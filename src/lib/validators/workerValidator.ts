@@ -1,45 +1,52 @@
-
-import { Worker } from '../types/worker';
-import { Task } from '../types/task';
-import { ValidationError } from './clientValidator';
+// lib/validators/workerValidator.ts
+import { Worker, Task, ValidationError } from '@/lib/types';
 
 export function validateWorkers(workers: Worker[], tasks: Task[]): ValidationError[] {
   const errors: ValidationError[] = [];
-  const seenIds = new Set<string>();
+  const workerIds = new Set<string>();
 
   workers.forEach((worker, index) => {
-    // a. Missing required columns
-    if (!worker.WorkerID) errors.push({ rowIndex: index, field: 'WorkerID', message: 'Missing WorkerID' });
-    if (!worker.WorkerName) errors.push({ rowIndex: index, field: 'WorkerName', message: 'Missing WorkerName' });
-
-    // b. Duplicate IDs
-    if (worker.WorkerID && seenIds.has(worker.WorkerID)) {
-      errors.push({ rowIndex: index, field: 'WorkerID', message: 'Duplicate WorkerID' });
-    } else if (worker.WorkerID) {
-      seenIds.add(worker.WorkerID);
+    if (!worker.WorkerID) {
+      errors.push({ rowIndex: index, field: 'WorkerID', message: 'Missing WorkerID' });
+    } else if (workerIds.has(worker.WorkerID)) {
+      errors.push({
+        rowIndex: index,
+        field: 'WorkerID',
+        message: `Duplicate WorkerID: ${worker.WorkerID}`,
+      });
+    } else {
+      workerIds.add(worker.WorkerID);
     }
 
-    // c. Malformed lists (AvailableSlots)
-    if (worker.AvailableSlots) {
-      let slots: number[];
-      if (typeof worker.AvailableSlots === 'string') {
-        try {
-          slots = JSON.parse(worker.AvailableSlots.replace(/\[|\]/g, '')).map(Number);
-        } catch {
-          errors.push({ rowIndex: index, field: 'AvailableSlots', message: 'Invalid AvailableSlots format' });
-          return;
+    if (worker.Skills) {
+      const workerSkills = worker.Skills.split(',').map(s => s.trim());
+      tasks.forEach(task => {
+        const requiredSkills = task.RequiredSkills.split(',').map(s => s.trim());
+        if (!requiredSkills.every(skill => workerSkills.includes(skill))) {
+          errors.push({
+            rowIndex: index,
+            field: 'Skills',
+            message: `Worker ${worker.WorkerID} lacks required skills for task ${task.TaskID}`,
+          });
         }
-      } else {
-        slots = worker.AvailableSlots;
-      }
-      if (slots.some(slot => isNaN(slot) || slot < 1)) {
-        errors.push({ rowIndex: index, field: 'AvailableSlots', message: 'AvailableSlots must contain positive integers' });
-      }
+      });
     }
 
-    // i. Overloaded workers (check if MaxLoadPerPhase is reasonable)
-    if (worker.MaxLoadPerPhase < 0) {
-      errors.push({ rowIndex: index, field: 'MaxLoadPerPhase', message: 'MaxLoadPerPhase must be non-negative' });
+    if (worker.AvailableSlots) {
+      const slots = worker.AvailableSlots.toString().split(',').map(s => s.trim());
+      if (!slots.every(slot => /^\d+$/.test(slot) && parseInt(slot, 10) > 0)) {
+        errors.push({
+          rowIndex: index,
+          field: 'AvailableSlots',
+          message: 'AvailableSlots must be comma-separated positive integers (e.g., 1,3,5)',
+        });
+      }
+    } else {
+      errors.push({
+        rowIndex: index,
+        field: 'AvailableSlots',
+        message: 'AvailableSlots is required',
+      });
     }
   });
 
