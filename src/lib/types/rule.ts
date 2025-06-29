@@ -22,4 +22,9 @@ export interface PhaseWindowRule {
   phases: string;
 }
 
-export type Rule = CoRunRule | SlotRestrictionRule | LoadLimitRule | PhaseWindowRule;
+export interface PatternMatchRule {
+  type: 'patternMatch';
+  regex: string;
+}
+
+export type Rule = CoRunRule | SlotRestrictionRule | LoadLimitRule | PhaseWindowRule | PatternMatchRule; // Add PatternMatchRule
